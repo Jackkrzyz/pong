@@ -310,6 +310,7 @@ ifeq ($(PLATFORM),PLATFORM_DESKTOP)
         # Libraries for Windows desktop compilation
         # NOTE: WinMM library required to set high-res timer resolution
         LDLIBS = -lraylib -lopengl32 -lgdi32 -lwinmm
+        LDFLAGS += -mwindows
         # Required for physac examples
         #LDLIBS += -static -lpthread
     endif
