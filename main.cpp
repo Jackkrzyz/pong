@@ -13,6 +13,7 @@ int cpu_score = 0;
 int framerate = 144;
 
 int frames_since_score = 0;
+float speedIncrease = 0.25;
 
 
 class Ball{
@@ -35,24 +36,19 @@ class Ball{
             if (x + radius >= GetScreenWidth())
             {
                 player_score++;
-                PlaySound(goalSound);
-                frames_since_score = 0;
-                Reset();
+                Reset(goalSound);
             }
             if (x - radius <= 0)
             {
                 cpu_score++;
-                PlaySound(goalSound);
-                frames_since_score = 0;
-                Reset();
+                Reset(goalSound);
             }
         }
-        void Reset() {
+        void Reset(Sound goalSound) {
+            PlaySound(goalSound);
             x = GetScreenWidth() / 2;
             y = GetScreenHeight() / 2;
-            int speed_choices[2] = {-1, 1};
-            speed_x *= speed_choices[GetRandomValue(0, 1)];
-            speed_y *= speed_choices[GetRandomValue(0, 1)];
+            frames_since_score = 0;
         }
 };
 
@@ -60,7 +56,7 @@ class Paddle {
     public:
         float x, y;
         float width, height;
-        int speed;
+        float speed;
         void draw() 
         {
             DrawRectangleRounded(Rectangle{x, y, width, height}, 0.8, 0, WHITE);
@@ -77,7 +73,7 @@ class Paddle {
 
 class CpuPaddle: public Paddle{
     public:
-        int minimum_distance = 50;
+        int minimum_distance;
         void Update(int ball_y) {
 
             if (y + height / 2 > ball_y + minimum_distance&& y > 15) {
@@ -126,7 +122,7 @@ int main () {
     cpu.x = screen_Width - 10 - cpu.width;
     cpu.y = screen_Height / 2 - cpu.height / 2;
     cpu.speed = 5;
-    cpu.minimum_distance = 80;
+    cpu.minimum_distance = 40;
     
     
 
@@ -147,8 +143,9 @@ int main () {
             ball.speed_y = 0;
         } else if (frames_since_score  == framerate)
         {
-            ball.speed_x = 5;
-            ball.speed_y = 5;
+            int choices[] = {1, -1};
+            ball.speed_x = 5 * choices[GetRandomValue(0, 1)];
+            ball.speed_y = 5 * choices[GetRandomValue(0, 1)];
         } 
         
         frames_since_score++;
@@ -156,11 +153,43 @@ int main () {
         if (CheckCollisionCircleRec(Vector2{ball.x, ball.y}, ball.radius, Rectangle{player.x, player.y, player.width, player.height}))
         {
             ball.speed_x *= -1;
+            if (ball.speed_x > 0)
+            {
+                ball.speed_x += speedIncrease;
+            }
+            else
+            {
+                ball.speed_x -= speedIncrease;
+            }
+            if (ball.speed_y > 0)
+            {
+                ball.speed_y += speedIncrease;
+            }
+            else
+            {
+                ball.speed_y -= speedIncrease;
+            }
             PlaySound(hitSound);
         }
         if (CheckCollisionCircleRec(Vector2{ball.x, ball.y}, ball.radius, Rectangle{cpu.x, cpu.y, cpu.width, cpu.height}))
         {
             ball.speed_x *= -1;
+            if (ball.speed_x > 0)
+            {
+                ball.speed_x += speedIncrease;
+            }
+            else
+            {
+                ball.speed_x -= speedIncrease;
+            }
+            if (ball.speed_y > 0)
+            {
+                ball.speed_y += speedIncrease;
+            }
+            else
+            {
+                ball.speed_y -= speedIncrease;
+            }
             PlaySound(hitSound);
         }
 
@@ -175,6 +204,7 @@ int main () {
 
         DrawText(TextFormat("%i", player_score), screen_Width / 4 - 20, 20, 80, WHITE);
         DrawText(TextFormat("%i", cpu_score), 3 *  screen_Width / 4 - 20 , 20, 80, WHITE);
+        DrawText(TextFormat("Ball Speed: %.1f", abs(ball.speed_x) ), screen_Width / 2 - 60  , 20, 30, WHITE);
         EndDrawing();
 
     } 
